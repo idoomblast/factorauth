@@ -1,0 +1,6 @@
+.env
+node_modules/
+*.log
+.DS_Store
+# exports with plaintext seeds stay out of git (fixtures live in test/fixtures)
+/*.xlsx

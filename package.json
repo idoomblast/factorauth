@@ -1,0 +1,27 @@
+{
+  "name": "factorauth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.tsx",
+    "start": "bun run src/index.tsx",
+    "migrate": "bun run src/migrate.ts",
+    "test": "bun test",
+    "backfill:fp": "bun run src/backfill-fingerprints.ts"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "hono": "^4.13.5",
+    "mysql2": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^7.0.2"
+  },
+  "description": "Multi-user TOTP vault with AES-256-GCM secrets, server-side codes, and xlsx import",
+  "license": "MIT",
+  "engines": {
+    "bun": ">=1.2"
+  }
+}
