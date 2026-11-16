@@ -19,6 +19,7 @@ src/
   index.tsx      route + validasi + render
   crypto.ts      AES-256-GCM, base32, TOTP (RFC 6238), otpauth, token sesi
   xlsx.ts        pembaca .xlsx minimal (fflate + XML, tanpa SheetJS)
+  xlsx-export.ts penulis .xlsx minimal dengan kolom yang sama seperti impor
   xlsx-import.ts pemetaan kolom + validasi baris impor
   auth.ts        argon2id, sesi, CSRF, lockout
   db.ts          pool mysql2, config env
@@ -67,6 +68,21 @@ Detail:
 - Saat pratinjau, tiap baris diberi status yang jelas: **siap**, **sudah di vault** (secret + label/issuer/akun sudah ada di akun ini), atau **kembar baris N** (baris persis sama di file yang sama, satu salinan tetap diimpor). Dua akun berbeda dengan seed sama tetap **siap**, karena kode 2FA-nya memang sama.
 - Batas: 4 MB, 2000 baris, maksimal 2000 baris per konfirmasi.
 - File asli tidak disimpan di server; setelah selesai, hapus file export-nya karena isinya secret polos.
+
+## Ekspor ke Excel
+
+Tombol **Ekspor .xlsx** di halaman vault mengunduh seluruh isi vault sebagai satu worksheet bernama `Vault`. Kolomnya sama persis dengan format impor berheader, jadi file hasil ekspor bisa langsung diimpor kembali tanpa memetakan kolom manual:
+
+```
+label | issuer | account | secret | algorithm | digits | period | notes
+```
+
+- Ekspor selalu seluruh vault, bukan hanya halaman atau hasil pencarian `q` yang sedang tampil, supaya file tetap utuh sebagai cadangan.
+- Hanya entri milik user yang login yang ikut; query memakai `WHERE user_id = ?`.
+- Route `POST /vault/export` butuh sesi dan token CSRF. Tanpa sesi diarahkan ke `/login`, token salah ditolak `400`.
+- Secret ditulis sebagai base32 tanpa spasi. **File berisi secret polos**, jadi simpan di tempat aman dan hapus setelah dipakai.
+- Baris yang secret-nya tidak bisa didekripsi (mis. kunci enkripsi sudah berganti) dilewati dan dicatat di log server, bukan diekspor dengan secret kosong yang bisa menimpa entri sehat saat diimpor balik.
+- Penulis file ada di `src/xlsx-export.ts`: hanya lima part XML yang diperlukan (tanpa styling, shared strings, atau formula), memakai `fflate` yang sama dengan pembaca.
 
 ## Environment
 
@@ -140,7 +156,7 @@ Batasan yang diketahui:
 ## Yang belum ada (kandidat berikutnya)
 
 - 2FA untuk aplikasi itu sendiri (passkey WebAuthn atau TOTP external) di atas password.
-- Export/import terenkripsi untuk cadangan offline.
+- Ekspor/import terenkripsi untuk cadangan offline (ekspor `.xlsx` yang ada sekarang berisi secret polos).
 - Audit log perubahan entri.
 - Hard delete setelah sekian lama di tempat sampah (belum ada soft delete).
 

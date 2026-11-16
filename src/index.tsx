@@ -31,6 +31,7 @@ import {
   type TotpAlgorithm,
 } from "./crypto.ts";
 import { readFirstSheet, XlsxError } from "./xlsx.ts";
+import { buildVaultWorkbook } from "./xlsx-export.ts";
 import {
   checkParsedRow,
   markDuplicates,
@@ -92,6 +93,11 @@ function field(body: Record<string, unknown>, key: string): string {
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
+}
+
+function exportStamp(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}`;
 }
 
 interface EntryRow {
@@ -379,6 +385,45 @@ app.get("/vault", async (c) => {
       flash={flash}
     />,
   );
+});
+
+app.post("/vault/export", async (c) => {
+  const user = c.get("user");
+  if (!user) {
+    return safeRedirect(c, "/login");
+  }
+  const body = await c.req.parseBody();
+  if (!checkCsrf(c, field(body, "_csrf"), user)) {
+    return c.html(<p>Sesi form kedaluwarsa.</p>, 400);
+  }
+
+  const rows = await listEntries(user.userId);
+  const entries = rows.flatMap((row) => {
+    try {
+      return [
+        {
+          label: row.label,
+          issuer: row.issuer,
+          account: row.account,
+          secret: decryptSecret(config.encryptionKey, Buffer.from(row.secret_enc)),
+          algorithm: row.algo,
+          digits: Number(row.digits),
+          period: Number(row.period),
+          notes: row.notes ?? "",
+        },
+      ];
+    } catch {
+      // Encrypted with a different key: skip it rather than export a blank
+      // secret and let a later import silently overwrite a working entry.
+      console.error(`[export] lewati entri ${row.id}: secret tidak bisa didekripsi`);
+      return [];
+    }
+  });
+
+  return c.newResponse(buildVaultWorkbook(entries), 200, {
+    "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "Content-Disposition": `attachment; filename="factorauth-${exportStamp(new Date())}.xlsx"`,
+  });
 });
 
 app.get("/api/codes", async (c) => {

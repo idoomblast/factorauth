@@ -54,11 +54,21 @@ export function VaultPage(props: {
             {props.user.email}
           </p>
         </div>
-        {props.entries.length > 0 ? (
-          <a href="/entries/new" class="btn btn-primary">
-            + Kunci baru
-          </a>
-        ) : null}
+        <div class="head-actions">
+          {props.total > 0 ? (
+            <form method="post" action="/vault/export" class="inline">
+              <input type="hidden" name="_csrf" value={props.csrf} />
+              <button type="submit" class="btn btn-ghost" title="Unduh semua kunci sebagai .xlsx">
+                Ekspor .xlsx
+              </button>
+            </form>
+          ) : null}
+          {props.entries.length > 0 ? (
+            <a href="/entries/new" class="btn btn-primary">
+              + Kunci baru
+            </a>
+          ) : null}
+        </div>
       </div>
 
       {props.flash ? (
