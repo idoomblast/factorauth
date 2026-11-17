@@ -54,7 +54,7 @@ export const Layout: FC<
         </a>
         <header class="topbar">
           <div class="topbar-inner">
-            <a class="brand" href="/">
+            <a class="brand" href="/" aria-label="factorauth">
               <span class="brand-mark" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8">
                   <rect x="4" y="10" width="16" height="10" rx="2.5" />
