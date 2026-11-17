@@ -52,7 +52,13 @@ export function EntryFormPage(props: {
           <div class="row wrap">
             <label class="btn btn-ghost file-btn">
               Pilih gambar QR
-              <input type="file" id="qr-file" accept="image/*" hidden />
+              <input
+                type="file"
+                id="qr-file"
+                accept="image/*"
+                class="sr-only"
+                aria-label="Pilih gambar QR"
+              />
             </label>
             <button type="button" class="btn btn-ghost" id="qr-camera">
               Pakai kamera
