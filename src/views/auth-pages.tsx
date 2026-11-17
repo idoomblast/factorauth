@@ -29,7 +29,6 @@ export function LoginPage(props: { csrf: string; error?: string; email?: string;
               name="email"
               value={props.email ?? ""}
               required
-              autofocus
               autocomplete="username"
               inputmode="email"
             />
