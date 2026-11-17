@@ -26,10 +26,23 @@
     const digits = row.querySelector(".code-digits");
     const bar = row.querySelector(".timer-bar");
     const seconds = row.querySelector(".timer-seconds");
+    const remainingSr = row.querySelector("[data-remaining-sr]");
+    const copyButton = row.querySelector("[data-copy]");
     if (digits && code) digits.textContent = formatCode(code);
+    // The accessible name carries the value too, so a re-read announces the
+    // code that a click would actually copy.
+    if (copyButton && code && row.dataset.name) {
+      copyButton.setAttribute("aria-label", `Salin kode ${row.dataset.name}: ${formatCode(code)}`);
+    }
     const ratio = period > 0 ? Math.max(0, Math.min(1, remaining / period)) : 0;
     if (bar) bar.style.width = `${ratio * 100}%`;
-    if (seconds) seconds.textContent = `${Math.max(0, Math.ceil(remaining))}s`;
+    const left = Math.max(0, Math.ceil(remaining));
+    if (seconds) seconds.textContent = `${left}s`;
+    // Static sr-only text, not a live region: a 250ms tick must stay silent.
+    if (remainingSr) remainingSr.textContent = `Sisa ${left} detik`;
+    // Colour-only expiry warning; thresholds match the server-rendered class.
+    row.classList.toggle("is-warning", remaining > 2 && remaining <= 5);
+    row.classList.toggle("is-critical", remaining <= 2);
     row.dataset.remaining = String(remaining);
   };
 
@@ -136,6 +149,16 @@
     clearTimeout(button.copyTimer);
     button.copyTimer = setTimeout(() => button.classList.remove("copied"), 1200);
     announce("Kode disalin ke clipboard.");
+  });
+
+  // Progressive enhancement only: <details> still works without this script.
+  // Escape closes an open row menu and hands focus back to its summary.
+  list.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    const menu = event.target.closest?.("details.entry-menu[open]");
+    if (!menu) return;
+    menu.open = false;
+    menu.querySelector("summary")?.focus();
   });
 
 })();
